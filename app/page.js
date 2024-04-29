@@ -188,7 +188,7 @@ export default function Home() {
           dense={true}
           onRowClicked={(row) => window.open("https://www.free-work.com/fr/tech-it/" + row.job.slug + "/job-mission/" + row.slug, '_blank')}
         />
-        <div className="flex flex-col md:flex-row items-center justify-center mt-4">
+        <div className="flex flex-col md:flex-row justify-center mt-4 gap-5">
           <div className="flex flex-col w-full">
             <h3 className="text-lg font-medium -mb-5">
               Nombre de missions par jour
@@ -200,18 +200,21 @@ export default function Home() {
               colors={['blue']}
               yAxisWidth={60}
               showAnimation={true}
+              className='py-5'
             />
           </div>
-          <div className="flex flex-col w-full h-full">
+          <div className="flex flex-col w-full">
             <h3 className="text-lg font-medium">
-              Répartition des technos demandées
+              Répartition des technos demandées (top 10)
             </h3>
             <DonutChart
               data={numberJobsPerTechno}
               category="Nombre de missions"
               index="name"
               colors={['blue', 'sky', 'cyan', 'teal', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']}
-              className="w-full h-full"
+              className="w-full h-72 md:h-full p-4 md:p-10"
+              showAnimation={true}
+              label={numberJobsPerTechno[0] ? numberJobsPerTechno[0].name : ''}
             />
           </div>
         </div>

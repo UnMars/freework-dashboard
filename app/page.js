@@ -8,6 +8,7 @@ import Loading from '@/assets/loading';
 import Magnifier from '@/assets/magnifier';
 import { AreaChart, DonutChart } from '@tremor/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 moment().locale('fr')
 
 export default function Home() {
@@ -60,6 +61,7 @@ export default function Home() {
           dataGraph.push({ date, 'Nombre de missions': 1 });
         }
       });
+      dataGraph.sort((a, b) => moment(a.date, 'DD/MM/YYYY').diff(moment(b.date, 'DD/MM/YYYY')));
       setNumberJobsPerDay(dataGraph);
 
       let dataGraphTechno = []
@@ -74,9 +76,7 @@ export default function Home() {
           }
         });
       });
-      // order by number of jobs
       dataGraphTechno.sort((a, b) => b['Nombre de missions'] - a['Nombre de missions']);
-      // limit to 10
       dataGraphTechno = dataGraphTechno.slice(0, 10);
       setNumberJobsPerTechno(dataGraphTechno);
 
@@ -168,6 +168,7 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center w-full h-full p-5">
       <SpeedInsights />
+      <Analytics />
       <h1 className="text-3xl md:text-4xl font-bold mt-1 mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-transparent bg-clip-text text-center">Dashboard Free-Work
       </h1>
       <div className="flex flex-row items-center justify-center">

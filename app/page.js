@@ -6,7 +6,8 @@ import moment from 'moment';
 import 'moment/locale/fr';
 import Loading from '@/assets/loading';
 import Magnifier from '@/assets/magnifier';
-import { AreaChart, DonutChart, Legend } from '@tremor/react';
+import { AreaChart, DonutChart } from '@tremor/react';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 moment().locale('fr')
 
 export default function Home() {
@@ -166,7 +167,8 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center justify-center w-full h-full p-5">
-      <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-transparent bg-clip-text text-center">Dashboard Free Work
+      <SpeedInsights />
+      <h1 className="text-3xl md:text-4xl font-bold mt-1 mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-transparent bg-clip-text text-center">Dashboard Free-Work
       </h1>
       <div className="flex flex-row items-center justify-center">
         {loading ? <Loading className="w-8 h-8" /> : <Magnifier className="w-7 h-7 cursor-pointer" onClick={fetchData} />}

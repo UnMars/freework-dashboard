@@ -24,7 +24,7 @@ const Loading = (props) => (
 			strokeDasharray="200 1000"
 			strokeLinecap="round"
 			strokeWidth={15}
-			transform-origin="center"
+			transformOrigin="center"
 		>
 			<animateTransform
 				attributeName="transform"
@@ -46,7 +46,7 @@ const Loading = (props) => (
 			strokeLinecap="round"
 			strokeWidth={15}
 			opacity={0.2}
-			transform-origin="center"
+			transformOrigin="center"
 		/>
 	</svg>
 )

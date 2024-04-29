@@ -15,7 +15,6 @@ export const getJobs = async (keywords, numberJobs) => {
 	let jobsData = [];
 	for (let i = 1; i < list.length + 1; i++) {
 		const urlFetch = url + "&page=" + i + "&itemsPerPage=" + list[i - 1];
-		console.log(urlFetch)
 		const data = await fetch(urlFetch, {
 			headers: {
 				'Accept': 'application/json'

@@ -6,6 +6,7 @@ import moment from 'moment';
 import 'moment/locale/fr';
 import Loading from '@/assets/loading';
 import Magnifier from '@/assets/magnifier';
+import { AreaChart, DonutChart, Legend } from '@tremor/react';
 moment().locale('fr')
 
 export default function Home() {
@@ -16,15 +17,56 @@ export default function Home() {
   const [numberJobs, setNumberJobs] = useState(300);
   const [loading, setLoading] = useState(false);
 
+  // statistics
+  const [numberJobsPerDay, setNumberJobsPerDay] = useState([]);
+  const [numberJobsPerTechno, setNumberJobsPerTechno] = useState([]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
       const jobsData = await getJobs(keywords, numberJobs);
       setAllJobs(jobsData);
       setLoading(false);
-      console.log(jobsData)
+
+      let dataGraph = []
+      jobsData.forEach(job => {
+        const date = moment(job.publishedAt).format('DD/MM/YYYY');
+        const existingItem = dataGraph.find(item => item.date === date);
+
+        if (existingItem) {
+          existingItem['Nombre de missions'] += 1;
+        } else {
+          dataGraph.push({ date, 'Nombre de missions': 1 });
+        }
+      });
+      setNumberJobsPerDay(dataGraph);
+
+      let dataGraphTechno = []
+      jobsData.forEach(job => {
+        job.skills.forEach(skill => {
+          const existingItem = dataGraphTechno.find(item => item.name === skill.name);
+
+          if (existingItem) {
+            existingItem['Nombre de missions'] += 1;
+          } else {
+            dataGraphTechno.push({ name: skill.name, 'Nombre de missions': 1 });
+          }
+        });
+      });
+      // order by number of jobs
+      dataGraphTechno.sort((a, b) => b['Nombre de missions'] - a['Nombre de missions']);
+      // limit to 10
+      dataGraphTechno = dataGraphTechno.slice(0, 10);
+      setNumberJobsPerTechno(dataGraphTechno);
+
     } catch (error) {
       console.error('Error fetching jobs:', error);
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      fetchData();
     }
   };
 
@@ -76,6 +118,7 @@ export default function Home() {
       format: row => row.skills.map(obj => obj.name).join(', '),
       sortable: true,
       reorder: true,
+      width: '200px',
     },
     {
       name: 'Soft Skills',
@@ -83,6 +126,7 @@ export default function Home() {
       format: row => row.softSkills.map(obj => obj.name).join(', '),
       sortable: true,
       reorder: true,
+      width: '150px',
     },
     {
       name: 'Entreprise',
@@ -101,20 +145,22 @@ export default function Home() {
   ];
 
   return (
-    <main className="flex flex-col items-center justify-between p-5">
-      <h1 className="text-4xl font-bold mt-2 mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-transparent bg-clip-text">Dashboard Free Work</h1>
+    <main className="flex flex-col items-center justify-center w-full h-full p-5">
+      <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-transparent bg-clip-text text-center">Dashboard Free Work
+      </h1>
       <div className="flex flex-row items-center justify-center">
         {loading ? <Loading className="w-8 h-8" /> : <Magnifier className="w-7 h-7 cursor-pointer" onClick={fetchData} />}
         <input
           ref={inputRef} type="text" placeholder="Entrer des mots-clés... Python, Javascript.."
-          class="w-96 px-4 py-2 ml-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 shadow-md"
+          className="w-[80vw] md:w-96 max-w-96 px-4 py-2 ml-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 shadow-md"
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
       </div>
 
       <div className="flex items-center mt-4">
-        <label htmlFor="numberOfJobs" className="mr-2">Nombre de missions :</label>
+        <label htmlFor="numberOfJobs" className="mr-2">Nombre de missions max :</label>
         <select ref={numberJobsRef} onChange={(e) => setNumberJobs(e.target.value)} id="numberOfJobs" name="numberOfJobs" className="block  bg-white border border-gray-300 hover:border-gray-500 px-2 py-2 rounded shadow leading-tight focus:outline-none focus:border-blue-500">
           <option value="300">300</option>
           <option value="500">500</option>
@@ -132,6 +178,8 @@ export default function Home() {
           columns={columns}
           data={allJobs}
           progressPending={loading}
+          progressComponent={<Loading className="w-20 h-[50.5vh]" />}
+          noDataComponent={<h2 className="text-xl font-bold text-center">Aucune mission trouvée</h2>}
           pagination={true}
           fixedHeader={true}
           fixedHeaderScrollHeight="60vh"
@@ -140,6 +188,33 @@ export default function Home() {
           dense={true}
           onRowClicked={(row) => window.open("https://www.free-work.com/fr/tech-it/" + row.job.slug + "/job-mission/" + row.slug, '_blank')}
         />
+        <div className="flex flex-col md:flex-row items-center justify-center mt-4">
+          <div className="flex flex-col w-full">
+            <h3 className="text-lg font-medium -mb-5">
+              Nombre de missions par jour
+            </h3>
+            <AreaChart
+              data={numberJobsPerDay}
+              index="date"
+              categories={['Nombre de missions']}
+              colors={['blue']}
+              yAxisWidth={60}
+              showAnimation={true}
+            />
+          </div>
+          <div className="flex flex-col w-full h-full">
+            <h3 className="text-lg font-medium">
+              Répartition des technos demandées
+            </h3>
+            <DonutChart
+              data={numberJobsPerTechno}
+              category="Nombre de missions"
+              index="name"
+              colors={['blue', 'sky', 'cyan', 'teal', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']}
+              className="w-full h-full"
+            />
+          </div>
+        </div>
       </div >
     </main>
 

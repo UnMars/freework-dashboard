@@ -24,8 +24,28 @@ export default function Home() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const jobsData = await getJobs(keywords, numberJobs);
-      setAllJobs(jobsData);
+      let url = "https://www.free-work.com/api/job_postings?contracts=contractor&order=date";
+      if (keywords) {
+        url += "&searchKeywords=" + keywords;
+      }
+      let list = [];
+      for (let i = 0; i < numberJobs / 350 - 1; i++) {
+        list.push(350)
+      }
+      list.push(numberJobs % 350)
+      let jobsData = [];
+      for (let i = 1; i < list.length + 1; i++) {
+        const urlFetch = url + "&page=" + i + "&itemsPerPage=" + list[i - 1];
+        const data = await getJobs(urlFetch);
+        jobsData = [...jobsData, ...data];
+      }
+      const seen = {};
+      const uniqueArray = jobsData.filter((obj) => {
+        const key = JSON.stringify(obj);
+        return seen.hasOwnProperty(key) ? false : (seen[key] = true);
+      });
+
+      setAllJobs(uniqueArray);
       setLoading(false);
 
       let dataGraph = []

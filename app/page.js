@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { getJobs } from '@/api/getJobs';
 import DataTable from 'react-data-table-component';
 import moment from 'moment';
@@ -10,6 +10,7 @@ import { AreaChart, DonutChart, BarChart } from '@tremor/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/react"
 import { getJobsCount } from '@/api/getJobsCount';
+import dynamic from 'next/dynamic';
 moment().locale('fr')
 
 export default function Home() {
@@ -29,6 +30,14 @@ export default function Home() {
   const [partiel, setPartiel] = useState(false);
   const [presentiel, setPresentiel] = useState(false);
   const [minTjm, setMinTjm] = useState(0);
+
+  const Map = useMemo(() => dynamic(
+    () => import('@/app/map'),
+    {
+      loading: () => <p>A map is loading</p>,
+      ssr: false
+    }
+  ), [])
 
   const fetchData = async () => {
     setLoading(true);
@@ -346,7 +355,7 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col md:flex-row justify-center mt-4 gap-5">
-          <div className="flex flex-col w-1/2">
+          <div className="flex flex-col w-full">
             <h3 className="text-lg font-medium -mb-5">
               Répartition des niveaux d'expérience par TJM moyen
             </h3>
@@ -358,6 +367,14 @@ export default function Home() {
               colors={['sky', 'blue']}
               yAxisWidth={30}
             />
+          </div>
+          <div className="flex flex-col w-full">
+            <h3 className="text-lg font-medium -mb-5">
+              Répartition des missions
+            </h3>
+            <div className="mt-8">
+              <Map zoom={5} position={[46.603354, 1.888334]} width="100%" height="40vh" jobs={allJobs} />
+            </div>
           </div>
         </div>
       </div>

@@ -9,27 +9,30 @@ import Magnifier from '@/assets/magnifier';
 import { AreaChart, DonutChart } from '@tremor/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/react"
+import { getJobsCount } from '@/api/getJobsCount';
 moment().locale('fr')
 
 export default function Home() {
   const [allJobs, setAllJobs] = useState([]);
   const [keywords, setKeywords] = useState('');
-  const inputRef = useRef(null);
-  const numberJobsRef = useRef(null);
   const [numberJobs, setNumberJobs] = useState(300);
+  const inputRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
   // statistics
   const [numberJobsPerDay, setNumberJobsPerDay] = useState([]);
   const [numberJobsPerTechno, setNumberJobsPerTechno] = useState([]);
 
+  // filter
+  const [remote, setRemote] = useState(false);
+  const [partiel, setPartiel] = useState(false);
+  const [presentiel, setPresentiel] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      let url = "https://www.free-work.com/api/job_postings?contracts=contractor&order=date";
-      if (keywords) {
-        url += "&searchKeywords=" + keywords;
-      }
+      const url = generateUrl();
+
       let list = [];
       for (let i = 0; i < numberJobs / 350 - 1; i++) {
         list.push(350)
@@ -41,13 +44,8 @@ export default function Home() {
         const data = await getJobs(urlFetch);
         jobsData = [...jobsData, ...data];
       }
-      const seen = {};
-      const uniqueArray = jobsData.filter((obj) => {
-        const key = JSON.stringify(obj);
-        return seen.hasOwnProperty(key) ? false : (seen[key] = true);
-      });
 
-      setAllJobs(uniqueArray);
+      setAllJobs(jobsData);
       setLoading(false);
 
       let dataGraph = []
@@ -90,6 +88,44 @@ export default function Home() {
       fetchData();
     }
   };
+
+  const generateUrl = (keywords) => {
+    let url = "https://www.free-work.com/api/job_postings?contracts=contractor&order=date";
+    if (keywords) {
+      url += "&searchKeywords=" + keywords;
+    }
+    let remoteModes = [];
+    if (remote) {
+      remoteModes.push('full');
+    }
+    if (partiel) {
+      remoteModes.push('partial');
+    }
+    if (presentiel) {
+      remoteModes.push('none');
+    }
+    if (remoteModes.length > 0) {
+      url += "&remoteMode=" + remoteModes.join(",");
+    }
+    return url;
+  }
+
+  const handleChange = async (event) => {
+    setKeywords(event.target.value);
+    const url = generateUrl(event.target.value);
+    const numberJobsToFetch = await getJobsCount(url);
+    setNumberJobs(numberJobsToFetch);
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const url = generateUrl(keywords);
+      const numberJobsToFetch = await getJobsCount(url);
+      setNumberJobs(numberJobsToFetch);
+    };
+
+    fetchData();
+  }, [remote, partiel, presentiel]);
 
   useEffect(() => {
     fetchData();
@@ -177,22 +213,23 @@ export default function Home() {
           ref={inputRef} type="text" placeholder="Entrer des mots-clés... Python, Javascript.."
           className="w-[80vw] md:w-96 max-w-96 px-4 py-2 ml-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 shadow-md"
           value={keywords}
-          onChange={(e) => setKeywords(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
         />
+
       </div>
+      <p className='text-sm mt-2'>Nombre de missions : {numberJobs}</p>
 
       <div className="flex items-center mt-4">
-        <label htmlFor="numberOfJobs" className="mr-2">Nombre de missions max :</label>
-        <select ref={numberJobsRef} onChange={(e) => setNumberJobs(e.target.value)} id="numberOfJobs" name="numberOfJobs" className="block  bg-white border border-gray-300 hover:border-gray-500 px-2 py-2 rounded shadow leading-tight focus:outline-none focus:border-blue-500">
-          <option value="300">300</option>
-          <option value="500">500</option>
-          <option value="1000">1000</option>
-          <option value="2000">2000</option>
-          <option value="3000">3000</option>
-          <option value="5000">5000</option>
-          <option value="10000">10000</option>
-        </select>
+        <p className="text-sm font-bold">Filtres :</p>
+        <div className="flex items-center gap-2 ml-2">
+          <input type="checkbox" id="remote" name="remote" value="remote" checked={remote} onChange={() => setRemote(!remote)} />
+          <label htmlFor="remote">Remote</label>
+          <input type="checkbox" id="partiel" name="partiel" value="partiel" checked={partiel} onChange={() => setPartiel(!partiel)} />
+          <label htmlFor="partiel">Partiel</label>
+          <input type="checkbox" id="présentiel" name="présentiel" value="présentiel" checked={presentiel} onChange={() => setPresentiel(!presentiel)} />
+          <label htmlFor="présentiel">Présentiel</label>
+        </div>
       </div>
 
       <div className="flex flex-col justify-center p-5 w-full">

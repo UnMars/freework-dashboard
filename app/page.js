@@ -6,7 +6,7 @@ import moment from 'moment';
 import 'moment/locale/fr';
 import Loading from '@/assets/loading';
 import Magnifier from '@/assets/magnifier';
-import { AreaChart, DonutChart } from '@tremor/react';
+import { AreaChart, DonutChart, BarChart } from '@tremor/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/react"
 import { getJobsCount } from '@/api/getJobsCount';
@@ -22,6 +22,7 @@ export default function Home() {
   // statistics
   const [numberJobsPerDay, setNumberJobsPerDay] = useState([]);
   const [numberJobsPerTechno, setNumberJobsPerTechno] = useState([]);
+  const [AverageTjmByLevel, setAverageTjmByLevel] = useState([]);
 
   // filter
   const [remote, setRemote] = useState(false);
@@ -35,17 +36,21 @@ export default function Home() {
       const url = generateUrl();
 
       let list = [];
-      for (let i = 0; i < numberJobs / 350 - 1; i++) {
-        list.push(350)
+      const numberPerRequest = 300;
+      for (let i = 0; i < numberJobs / numberPerRequest - 1; i++) {
+        list.push(numberPerRequest)
       }
-      list.push(numberJobs % 350)
+      if (numberJobs % numberPerRequest !== 0)
+        list.push(numberJobs % numberPerRequest)
+      else
+        list.push(numberPerRequest)
+
       let jobsData = [];
       for (let i = 1; i < list.length + 1; i++) {
         const urlFetch = url + "&page=" + i + "&itemsPerPage=" + list[i - 1];
         const data = await getJobs(urlFetch);
         jobsData = [...jobsData, ...data];
       }
-
       setAllJobs(jobsData);
       setLoading(false);
 
@@ -78,6 +83,48 @@ export default function Home() {
       dataGraphTechno.sort((a, b) => b['Nombre de missions'] - a['Nombre de missions']);
       dataGraphTechno = dataGraphTechno.slice(0, 10);
       setNumberJobsPerTechno(dataGraphTechno);
+
+      let dataGraphLevel = []
+      jobsData.forEach(job => {
+        const existingItem = dataGraphLevel.find(item => item.name === job.experienceLevel);
+        let min = 0;
+        let max = 0;
+        if (job.dailySalary) {
+          if (job.dailySalary.includes('€')) {
+            const minMax = job.dailySalary.split('-').map(item => parseInt(item.replace('€', '').trim()));
+            [min, max] = minMax.length === 1 ? [minMax[0], minMax[0]] : [minMax[0], minMax[1]];
+          }
+          if (min < 10) {
+            min *= 1000;
+          }
+          if (max < 10) {
+            max *= 1000;
+          }
+        }
+
+        if (existingItem) {
+          existingItem['Nombre de missions'] += 1;
+          existingItem['min TJM moyen'] += min;
+          existingItem['max TJM moyen'] += max;
+          if (max !== 0 && min !== 0) {
+            existingItem['nbrTjm'] += 1;
+          }
+        } else {
+          dataGraphLevel.push({ name: job.experienceLevel, 'Nombre de missions': 1, 'min TJM moyen': min, 'max TJM moyen': max, 'nbrTjm': max !== 0 && min !== 0 ? 1 : 0 });
+        }
+      });
+      dataGraphLevel.forEach(item => {
+        item['min TJM moyen'] = Math.round(item['min TJM moyen'] / item['nbrTjm']);
+        item['max TJM moyen'] = Math.round(item['max TJM moyen'] / item['nbrTjm']);
+      });
+      const order = ['junior', 'intermediate', 'expert', 'senior'];
+
+      const sortedData = dataGraphLevel.sort((a, b) => {
+        const orderA = order.indexOf(a.name);
+        const orderB = order.indexOf(b.name);
+        return orderA - orderB;
+      });
+      setAverageTjmByLevel(sortedData);
 
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -174,6 +221,13 @@ export default function Home() {
       width: '100px',
     },
     {
+      name: 'Xp',
+      selector: row => row.experienceLevel,
+      sortable: true,
+      reorder: true,
+      width: '110px',
+    },
+    {
       name: 'Skills',
       selector: row => row.skills,
       format: row => row.skills.map(obj => obj.name).join(', '),
@@ -227,7 +281,7 @@ export default function Home() {
       <div className="flex flex-col md:flex-row items-center mt-4 gap-4">
         <div className="flex items-center">
           <p className="text-sm font-bold">Télétravail :</p>
-          <div className="flex items-center gap-2 ml-2">
+          <div className="flex items-center gap-1 ml-2">
             <input type="checkbox" id="remote" name="remote" value="remote" checked={remote} onChange={() => setRemote(!remote)} />
             <label htmlFor="remote">Remote</label>
             <input type="checkbox" id="partiel" name="partiel" value="partiel" checked={partiel} onChange={() => setPartiel(!partiel)} />
@@ -290,7 +344,23 @@ export default function Home() {
             />
           </div>
         </div>
-      </div >
+
+        <div className="flex flex-col md:flex-row justify-center mt-4 gap-5">
+          <div className="flex flex-col w-1/2">
+            <h3 className="text-lg font-medium -mb-5">
+              Répartition des niveaux d'expérience par TJM moyen
+            </h3>
+            <BarChart
+              className="mt-6"
+              data={AverageTjmByLevel}
+              index="name"
+              categories={['min TJM moyen', 'max TJM moyen']}
+              colors={['sky', 'blue']}
+              yAxisWidth={30}
+            />
+          </div>
+        </div>
+      </div>
     </main>
 
   );

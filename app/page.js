@@ -27,6 +27,7 @@ export default function Home() {
   const [remote, setRemote] = useState(false);
   const [partiel, setPartiel] = useState(false);
   const [presentiel, setPresentiel] = useState(false);
+  const [minTjm, setMinTjm] = useState(0);
 
   const fetchData = async () => {
     setLoading(true);
@@ -107,6 +108,9 @@ export default function Home() {
     if (remoteModes.length > 0) {
       url += "&remoteMode=" + remoteModes.join(",");
     }
+    if (minTjm) {
+      url += "&minDailySalary=" + minTjm;
+    }
     return url;
   }
 
@@ -125,7 +129,7 @@ export default function Home() {
     };
 
     fetchData();
-  }, [remote, partiel, presentiel]);
+  }, [remote, partiel, presentiel, minTjm]);
 
   useEffect(() => {
     fetchData();
@@ -220,15 +224,23 @@ export default function Home() {
       </div>
       <p className='text-sm mt-2'>Nombre de missions : {numberJobs}</p>
 
-      <div className="flex items-center mt-4">
-        <p className="text-sm font-bold">Filtres :</p>
-        <div className="flex items-center gap-2 ml-2">
-          <input type="checkbox" id="remote" name="remote" value="remote" checked={remote} onChange={() => setRemote(!remote)} />
-          <label htmlFor="remote">Remote</label>
-          <input type="checkbox" id="partiel" name="partiel" value="partiel" checked={partiel} onChange={() => setPartiel(!partiel)} />
-          <label htmlFor="partiel">Partiel</label>
-          <input type="checkbox" id="présentiel" name="présentiel" value="présentiel" checked={presentiel} onChange={() => setPresentiel(!presentiel)} />
-          <label htmlFor="présentiel">Présentiel</label>
+      <div className="flex flex-col md:flex-row items-center mt-4 gap-4">
+        <div className="flex items-center">
+          <p className="text-sm font-bold">Télétravail :</p>
+          <div className="flex items-center gap-2 ml-2">
+            <input type="checkbox" id="remote" name="remote" value="remote" checked={remote} onChange={() => setRemote(!remote)} />
+            <label htmlFor="remote">Remote</label>
+            <input type="checkbox" id="partiel" name="partiel" value="partiel" checked={partiel} onChange={() => setPartiel(!partiel)} />
+            <label htmlFor="partiel">Partiel</label>
+            <input type="checkbox" id="présentiel" name="présentiel" value="présentiel" checked={presentiel} onChange={() => setPresentiel(!presentiel)} />
+            <label htmlFor="présentiel">Présentiel</label>
+          </div>
+        </div>
+        <div className="flex items-center">
+          <p className="text-sm font-bold">TJM :</p>
+          <div className="flex items-center gap-2 ml-2">
+            <input type="text" id="minTjm" name="minTjm" placeholder="min" className="border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 shadow-md px-2 py-1 w-20" onChange={(e) => setMinTjm(e.target.value)} />
+          </div>
         </div>
       </div>
 

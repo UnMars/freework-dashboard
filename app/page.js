@@ -92,30 +92,18 @@ export default function Home() {
       let dataGraphLevel = []
       jobsData.forEach(job => {
         const existingItem = dataGraphLevel.find(item => item.name === job.experienceLevel);
-        let min = 0;
-        let max = 0;
-        if (job.dailySalary) {
-          if (job.dailySalary.includes('€')) {
-            const minMax = job.dailySalary.split('-').map(item => parseInt(item.replace('€', '').trim()));
-            [min, max] = minMax.length === 1 ? [minMax[0], minMax[0]] : [minMax[0], minMax[1]];
-          }
-          if (min < 10) {
-            min *= 1000;
-          }
-          if (max < 10) {
-            max *= 1000;
-          }
-        }
+        let min = job.minDailySalary;
+        let max = job.maxDailySalary;
 
         if (existingItem) {
           existingItem['Nombre de missions'] += 1;
           existingItem['min TJM moyen'] += min;
           existingItem['max TJM moyen'] += max;
-          if (max !== 0 && min !== 0) {
+          if (max !== null && min !== null) {
             existingItem['nbrTjm'] += 1;
           }
         } else {
-          dataGraphLevel.push({ name: job.experienceLevel, 'Nombre de missions': 1, 'min TJM moyen': min, 'max TJM moyen': max, 'nbrTjm': max !== 0 && min !== 0 ? 1 : 0 });
+          dataGraphLevel.push({ name: job.experienceLevel, 'Nombre de missions': 1, 'min TJM moyen': min, 'max TJM moyen': max, 'nbrTjm': max !== null && min !== null ? 1 : 0 });
         }
       });
       dataGraphLevel.forEach(item => {

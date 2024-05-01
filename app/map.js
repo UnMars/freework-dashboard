@@ -40,7 +40,7 @@ export default function MyMap(props) {
 					points={jobs}
 					longitudeExtractor={(m) => m.location.longitude}
 					latitudeExtractor={(m) => m.location.latitude}
-					intensityExtractor={(m) => selectedFilter === 'missions' ? 1 : selectedFilter === 'avgTjm' ? (m.minDailySalary + m.maxDailySalary) / 2 : m.duration}
+					intensityExtractor={(m) => selectedFilter === 'missions' ? 1 : selectedFilter === 'avgTjm' ? parseFloat((m.minDailySalary + m.maxDailySalary) / 2) : parseFloat(m.duration)}
 					radius={10}
 					minOpacity={1}
 					useLocalExtrema={true}

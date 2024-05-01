@@ -12,7 +12,6 @@ export default function MyMap(props) {
 	const handleFilterSelection = (filter) => {
 		setSelectedFilter(filter);
 	};
-	console.log(jobs);
 
 	return (
 		<div>

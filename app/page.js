@@ -46,13 +46,9 @@ export default function Home() {
 
       let list = [];
       const numberPerRequest = 300;
-      for (let i = 0; i < numberJobs / numberPerRequest - 1; i++) {
+      for (let i = 0; i < numberJobs / numberPerRequest; i++) {
         list.push(numberPerRequest)
       }
-      if (numberJobs % numberPerRequest !== 0)
-        list.push(numberJobs % numberPerRequest)
-      else
-        list.push(numberPerRequest)
 
       const promises = list.map((numberItem, index) => {
         const urlFetch = url + "&page=" + (parseInt(index) + 1) + "&itemsPerPage=" + numberItem;

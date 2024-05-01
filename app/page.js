@@ -42,7 +42,7 @@ export default function Home() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const url = generateUrl();
+      const url = generateUrl(keywords);
 
       let list = [];
       const numberPerRequest = 300;
@@ -54,12 +54,12 @@ export default function Home() {
       else
         list.push(numberPerRequest)
 
-      let jobsData = [];
-      for (let i = 1; i < list.length + 1; i++) {
-        const urlFetch = url + "&page=" + i + "&itemsPerPage=" + list[i - 1];
-        const data = await getJobs(urlFetch);
-        jobsData = [...jobsData, ...data];
-      }
+      const promises = list.map((numberItem, index) => {
+        const urlFetch = url + "&page=" + (parseInt(index) + 1) + "&itemsPerPage=" + numberItem;
+        return getJobs(urlFetch);
+      });
+      const results = await Promise.all(promises);
+      const jobsData = results.flat();
       setAllJobs(jobsData);
       setLoading(false);
 
@@ -378,6 +378,10 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <footer className="flex flex-col items-center justify-end w-full mt-2">
+        <p className="text-sm">Fait avec ❤️ par <a href="https://github.com/ronanren" target="_blank" rel="noopener noreferrer" className="text-blue-500">Ronanren</a></p>
+      </footer>
     </main>
 
   );

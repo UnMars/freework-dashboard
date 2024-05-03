@@ -1,6 +1,11 @@
 # Freework-dashboard
 
-Optimisez votre recherche de missions freelance en IT avec cet outil d'analyse de marché basé sur Free-Work
+Optimisez votre recherche de missions freelance en IT avec cet outil d'analyse de marché basé sur Free-Work.
+
+## Framework
+
+- NextJS
+- TailwindCSS
 
 ## Capture d'écran
 

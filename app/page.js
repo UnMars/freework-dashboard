@@ -30,6 +30,10 @@ export default function Home() {
   const [partiel, setPartiel] = useState(false);
   const [presentiel, setPresentiel] = useState(false);
   const [minTjm, setMinTjm] = useState(0);
+  const [junior, setJunior] = useState(false);
+  const [intermediate, setIntermediate] = useState(false);
+  const [expert, setExpert] = useState(false);
+  const [senior, setSenior] = useState(false);
 
   const Map = useMemo(() => dynamic(
     () => import('@/app/map'),
@@ -38,6 +42,20 @@ export default function Home() {
       ssr: false
     }
   ), [])
+
+  const filterJobsByXp = (jobsData) => {
+    const filteredJobs = jobsData.filter(job => {
+      if ((!junior && !intermediate && !expert && !senior) ||
+        (junior && job.experienceLevel === 'junior') ||
+        (intermediate && job.experienceLevel === 'intermediate') ||
+        (expert && job.experienceLevel === 'expert') ||
+        (senior && job.experienceLevel === 'senior')) {
+        return true;
+      }
+      return false;
+    });
+    return filteredJobs;
+  }
 
   const fetchData = async () => {
     setLoading(true);
@@ -289,13 +307,24 @@ export default function Home() {
             <input type="text" id="minTjm" name="minTjm" placeholder="min" className="border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 shadow-md px-2 py-1 w-20" onChange={(e) => setMinTjm(e.target.value)} />
           </div>
         </div>
+        <p className="text-sm font-bold">Xp :</p>
+          <div className="flex items-center gap-1 ml-2">
+            <input type="checkbox" id="junior" name="junior" value="junior" checked={junior} onChange={() => setJunior(!junior)} />
+            <label htmlFor="junior">Junior</label>
+            <input type="checkbox" id="intermediate" name="intermediate" value="intermediate" checked={intermediate} onChange={() => setIntermediate(!intermediate)} />
+            <label htmlFor="intermediate">Intermediate</label>
+            <input type="checkbox" id="senior" name="senior" value="senior" checked={senior} onChange={() => setSenior(!senior)} />
+            <label htmlFor="senior">Senior</label>
+            <input type="checkbox" id="expert" name="expert" value="expert" checked={expert} onChange={() => setExpert(!expert)} />
+            <label htmlFor="expert">Expert</label>
+          </div>
       </div>
 
       <div className="flex flex-col justify-center p-5 w-full">
         <h1 className="text-2xl mb-2 font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 text-transparent bg-clip-text">Offres de missions :</h1>
         <DataTable
           columns={columns}
-          data={allJobs}
+          data={filterJobsByXp(allJobs)}
           progressPending={loading}
           progressComponent={<Loading className="w-20 h-[50.5vh]" />}
           noDataComponent={<h2 className="text-xl font-bold text-center">Aucune mission trouvée</h2>}
@@ -367,6 +396,5 @@ export default function Home() {
         <p className="text-sm">Fait avec ❤️ par <a href="https://github.com/ronanren" target="_blank" rel="noopener noreferrer" className="text-blue-500">Ronanren</a></p>
       </footer>
     </main>
-
   );
 }
